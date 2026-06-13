@@ -41,7 +41,6 @@ export class HomeComponent {
     { value: 6, label: '6 meses', originalPrice: '45 €', discountedPrice: '40 €' }
   ];
 
-  selectedCategories: string[] = [];
   email = '';
   duration = 3;
   total = 0;
@@ -63,16 +62,6 @@ export class HomeComponent {
     this.total = this.getBasePrice();
   }
 
-  toggleCategory(category: string, checked: boolean) {
-    const index = this.selectedCategories.indexOf(category);
-    if (checked && index === -1) {
-      this.selectedCategories.push(category);
-    }
-    if (!checked && index !== -1) {
-      this.selectedCategories.splice(index, 1);
-    }
-    this.updateTotal();
-  }
 
   loadVisits() {
     this.http.get<{ count: number }>('/back/visit').subscribe({
@@ -95,18 +84,11 @@ export class HomeComponent {
       return;
     }
 
-    if (this.selectedCategories.length === 0) {
-      this.message = 'Selecciona al menos una categoría para continuar.';
-      this.isError = true;
-      return;
-    }
-
     this.isSubmitting = true;
 
     const body = {
       email: this.email,
       duration: this.duration,
-      categories: this.selectedCategories,
       total: this.total
     };
 

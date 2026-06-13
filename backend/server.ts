@@ -51,7 +51,6 @@ interface Order {
   id: string;
   email: string;
   duration: number;
-  categories: string[];
   total: number;
   createdAt: string;
   status: 'pending' | 'completed' | 'failed';
@@ -59,7 +58,7 @@ interface Order {
 
 let visitCount = 0;
 
-function computeTotal(duration: number, categories: string[]): number {
+function computeTotal(duration: number): number {
   return duration === 1 ? 0.01 : duration === 3 ? 25 : 40;
 }
 
@@ -70,7 +69,6 @@ async function sendCustomerEmail(order: Order): Promise<void> {
   }
 
   const transporter = nodemailer.createTransport(emailTransportConfig);
-  const htmlCategories = order.categories.map((cat) => `<li style="color: #555;">${cat}</li>`).join('');
 
   const message = {
     from: process.env.EMAIL_FROM || emailTransportConfig.auth.user,
@@ -123,6 +121,7 @@ async function sendCustomerEmail(order: Order): Promise<void> {
             <table class="data-table">
               <tr><td><strong>ID de orden</strong></td><td>${order.id}</td></tr>
               <tr><td><strong>Suscripción</strong></td><td>${order.duration} mes${order.duration === 1 ? '' : 'es'}</td></tr>
+              <tr><td><strong>Total</strong></td><td style="color: #667eea; font-weight: bold;">${order.total.toFixed(2)} €</td></tr>
             </table>
           </div>
           <div class="footer">
@@ -139,7 +138,7 @@ async function sendCustomerEmail(order: Order): Promise<void> {
 
 // 1. EL USUARIO INICIA LA INTENCIÓN DE COMPRA
 app.post('/back/orders', async (req: Request, res: Response) => {
-  const { email, duration, categories } = req.body;
+  const { email, duration } = req.body;
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     return res.status(400).json({ error: 'Email inválido.' });
@@ -149,38 +148,19 @@ app.post('/back/orders', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Duración inválida.' });
   }
 
-  const categoriesArray = Array.isArray(categories) ? categories : [];
-  const total = computeTotal(duration, categoriesArray);
+  const total = computeTotal(duration);
   const id = randomUUID();
   const createdAt = new Date().toISOString();
 
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-
     const insertOrderQuery = `
       INSERT INTO orders (id, email, duration, total, created_at, status)
       VALUES ($1, $2, $3, $4, $5, $6)
     `;
-    await client.query(insertOrderQuery, [id, email, duration, total, createdAt, 'pending']);
-
-    if (categoriesArray.length > 0) {
-      const insertCategoryQuery = `
-        INSERT INTO order_categories (order_id, category_name)
-        VALUES ($1, $2)
-      `;
-      for (const category of categoriesArray) {
-        await client.query(insertCategoryQuery, [id, category]);
-      }
-    }
-
-    await client.query('COMMIT');
+    await pool.query(insertOrderQuery, [id, email, duration, total, createdAt, 'pending']);
   } catch (error) {
-    await client.query('ROLLBACK');
     console.error('Error insertando la orden en base de datos:', error);
     return res.status(500).json({ error: 'Error interno del servidor al procesar la orden.' });
-  } finally {
-    client.release();
   }
 
   const baseUrl = `http://localhost:4200`;
@@ -215,16 +195,7 @@ app.post('/back/orders/confirm', async (req: Request, res: Response) => {
 
     const dbOrder = orderResult.rows[0];
 
-    // Consultamos sus categorías asociadas de forma relacional
-    const selectCategoriesQuery = `
-      SELECT category_name 
-      FROM order_categories 
-      WHERE order_id = $1
-    `;
-    const categoriesResult = await pool.query(selectCategoriesQuery, [dbOrder.id]);
-    const categoriesMapped = categoriesResult.rows.map(row => row.category_name);
-
-    // Corregido: Ahora solo pasamos 1 parámetro ($1 para el id) y cambiamos el estado a 'completed'
+    // Cambiamos el estado a 'completed'
     const updateOrderQuery = `
       UPDATE orders 
       SET status = 'completed' 
@@ -236,7 +207,6 @@ app.post('/back/orders/confirm', async (req: Request, res: Response) => {
       id: dbOrder.id,
       email: dbOrder.email,
       duration: dbOrder.duration,
-      categories: categoriesMapped,
       total: Number(dbOrder.total),
       createdAt: dbOrder.created_at,
       status: 'completed'
@@ -267,11 +237,9 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/back/admin', async (req: Request, res: Response) => {
   try {
     const adminOrdersQuery = `
-      SELECT o.*, ARRAY_AGG(oc.category_name) as categories
-      FROM orders o
-      LEFT JOIN order_categories oc ON o.id = oc.order_id
-      GROUP BY o.id
-      ORDER BY o.created_at DESC
+      SELECT id, email, duration, total, created_at, status
+      FROM orders
+      ORDER BY created_at DESC
     `;
     const result = await pool.query(adminOrdersQuery);
     res.json({ visits: visitCount, orders: result.rows });
@@ -285,7 +253,7 @@ app.get('/back/health', (req: Request, res: Response) => {
 });
 
 const server = app.listen(PORT, () => {
-  console.log(`Backend IPTV persistente en Neon escuchando en http://localhost:${PORT}`);
+  console.log(`Backend IPTV sin categorías escuchando en http://localhost:${PORT}`);
 });
 
 export default server;

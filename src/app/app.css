@@ -4,6 +4,35 @@
   min-height: 100vh;
 }
 
+.promo-banner {
+  background: linear-gradient(135deg, #ec4899, #f59e0b, #10b981);
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.promo-banner span {
+  font-size: 1.3rem;
+  display: block;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+.promo-banner p {
+  margin: 0;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.9; }
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -57,12 +86,13 @@ main {
 }
 
 footer {
-  padding: 1.5rem;
+  padding: 2rem;
   text-align: center;
   color: #94a3b8;
-  border-top: 1px solid #334155;
-  background: #0f172a;
+  border-top: 2px solid #334155;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   font-size: 0.9rem;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
 }
 
 footer p {

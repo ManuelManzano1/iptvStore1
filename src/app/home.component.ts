@@ -16,20 +16,29 @@ interface CategoryOption {
   styleUrl: './home.component.css'
 })
 export class HomeComponent {
-  categories: CategoryOption[] = [
-    { key: 'movistar_futbol', label: 'Movistar Fútbol' },
-    { key: 'movistar_deportes', label: 'Movistar Deportes' },
-    { key: 'dazn_futbol', label: 'DAZN Fútbol' },
-    { key: 'dazn_deportes', label: 'DAZN Deportes' },
-    { key: 'documentales', label: 'Documentales' },
-    { key: 'cine_series', label: 'Cine y series' },
+  nationalCategories: CategoryOption[] = [
+    { key: 'futbol_deportes', label: 'Pack Fútbol y Deportes' },
+    { key: 'documentales_cine', label: 'Pack Documentales y Cine' },
     { key: 'tdt', label: 'TDT' }
   ];
 
+  internationalCategories: CategoryOption[] = [
+    { key: 'france', label: '🇫🇷 Francia' },
+    { key: 'italy', label: '🇮🇹 Italia' },
+    { key: 'england', label: '🇬🇧 Inglaterra' },
+    { key: 'usa', label: '🇺🇸 Estados Unidos' }
+  ];
+
+  activeTab: 'national' | 'international' = 'national';
+
+  get categories(): CategoryOption[] {
+    return this.activeTab === 'national' ? this.nationalCategories : this.internationalCategories;
+  }
+
   durationOptions = [
-    { value: 1, label: '1 mes', hint: '15 €' },
-    { value: 3, label: '3 meses', hint: '40 €' },
-    { value: 6, label: '6 meses', hint: '75 €' }
+    { value: 1, label: '1 mes', originalPrice: '12 €', discountedPrice: '10 €' },
+    { value: 3, label: '3 meses', originalPrice: '30 €', discountedPrice: '25 €' },
+    { value: 6, label: '6 meses', originalPrice: '45 €', discountedPrice: '40 €' }
   ];
 
   selectedCategories: string[] = [];
@@ -47,13 +56,11 @@ export class HomeComponent {
   }
 
   getBasePrice(): number {
-    return this.duration === 1 ? 15 : this.duration === 3 ? 40 : 75;
+    return this.duration === 1 ? 10 : this.duration === 3 ? 25 : 40;
   }
 
   updateTotal() {
-    const base = this.getBasePrice();
-    const extra = this.selectedCategories.length * 3;
-    this.total = base + extra;
+    this.total = this.getBasePrice();
   }
 
   toggleCategory(category: string, checked: boolean) {

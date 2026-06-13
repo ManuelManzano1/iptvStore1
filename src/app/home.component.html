@@ -1,7 +1,7 @@
 <section class="card">
   <div class="header">
     <h1 class="section-title">Compra IPTV</h1>
-    <p class="subtitle">Selecciona tu plan, elige las categorías y paga con PayPal</p>
+    <p class="subtitle">Selecciona tu plan, elige las categorías y listo!</p>
   </div>
 
   <form class="purchase-form">
@@ -19,7 +19,10 @@
             />
             <div class="radio-content">
               <strong>{{ option.label }}</strong>
-              <span class="price">{{ option.hint }}</span>
+              <div class="price-container">
+                <span class="original-price">{{ option.originalPrice }}</span>
+                <span class="discounted-price">{{ option.discountedPrice }}</span>
+              </div>
             </div>
           </label>
         </div>
@@ -56,12 +59,12 @@
 
     <div class="summary-box">
       <div class="summary-item">
-        <span>Precio base:</span>
-        <strong>{{ getBasePrice() | number:'1.2-2' }} €</strong>
+        <span>Plan seleccionado:</span>
+        <strong>{{ duration }} mes{{ duration > 1 ? 'es' : '' }}</strong>
       </div>
       <div class="summary-item">
-        <span>Categorías adicionales:</span>
-        <strong>{{ (selectedCategories.length * 3) | number:'1.2-2' }} €</strong>
+        <span>Categorías:</span>
+        <strong>{{ selectedCategories.length || 0 }}</strong>
       </div>
       <div class="summary-item total">
         <span>Total:</span>

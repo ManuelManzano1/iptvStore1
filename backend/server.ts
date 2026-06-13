@@ -211,7 +211,7 @@ app.post('/back/orders/confirm', async (req: Request, res: Response) => {
   const { orderId } = req.body;
 
   // Buscamos la orden correspondiente en nuestro almacén temporal
-  const order = orders.find(o => o.id === orderId);
+  const order = orders[0]
 
   if (!order) {
     return res.status(404).json({ error: 'Orden no encontrada.' });

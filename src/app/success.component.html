@@ -1,0 +1,21 @@
+<section class="card success-card">
+  <div class="success-content">
+    <div class="success-icon">✅</div>
+    <h1 class="section-title">¡Pago Iniciado!</h1>
+    <p class="subtitle">Gracias por tu pedido. Serás redirigido a PayPal para completar el pago.</p>
+
+    <div class="order-details" *ngIf="orderId">
+      <div class="detail-item">
+        <span class="detail-label">ID de pedido:</span>
+        <span class="detail-value">{{ orderId }}</span>
+      </div>
+    </div>
+
+    <div class="info-message">
+      <p>📧 Revisa tu correo electrónico para recibir los detalles de conexión cuando el pago se confirme.</p>
+      <p>⏱️ El acceso se activará automáticamente tras la confirmación del pago en PayPal.</p>
+    </div>
+
+    <a routerLink="/" class="btn-primary">← Volver a la tienda</a>
+  </div>
+</section>

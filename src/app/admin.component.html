@@ -1,0 +1,71 @@
+<section class="card">
+  <div class="header">
+    <h1 class="section-title">📊 Panel Admin</h1>
+    <p class="subtitle">Estadísticas y órdenes recientes de la tienda</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <p class="stat-label">Visitas totales</p>
+        <p class="stat-value">{{ visits }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">💳</div>
+      <div class="stat-content">
+        <p class="stat-label">Órdenes registradas</p>
+        <p class="stat-value">{{ orders.length }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card" *ngIf="orders.length > 0">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <p class="stat-label">Ingresos totales</p>
+        <p class="stat-value">{{ getTotalRevenue() | number:'1.2-2' }} €</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="orders.length > 0" class="orders-section">
+    <h2 class="section-subtitle">📋 Órdenes recientes</h2>
+    <div class="orders-table-wrapper">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Duración</th>
+            <th>Categorías</th>
+            <th>Total</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of orders" class="order-row">
+            <td class="email-cell">{{ order.email }}</td>
+            <td>{{ order.duration }}m</td>
+            <td>
+              <span class="categories-badge" title="{{ order.categories.join(', ') }}">
+                {{ order.categories.length }} cat.
+              </span>
+            </td>
+            <td class="price-cell">{{ order.total | number:'1.2-2' }} €</td>
+            <td class="date-cell">{{ order.createdAt | date:'short' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="orders.length === 0" class="empty-state">
+    <p class="empty-icon">📭</p>
+    <p class="empty-text">No hay órdenes registradas todavía</p>
+  </div>
+
+  <div class="action-buttons">
+    <a routerLink="/" class="btn-secondary">← Volver a la tienda</a>
+  </div>
+</section>

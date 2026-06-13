@@ -1,0 +1,107 @@
+<section class="card">
+  <div class="header">
+    <h1 class="section-title">Compra IPTV</h1>
+    <p class="subtitle">Selecciona tu plan, elige las categorías y paga con PayPal</p>
+  </div>
+
+  <form class="purchase-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="field-label">📅 Duración</label>
+        <div class="radio-group">
+          <label *ngFor="let option of durationOptions" class="radio-card">
+            <input
+              type="radio"
+              name="duration"
+              [value]="option.value"
+              [(ngModel)]="duration"
+              (change)="updateTotal()"
+            />
+            <div class="radio-content">
+              <strong>{{ option.label }}</strong>
+              <span class="price">{{ option.hint }}</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">📺 Categorías</label>
+        <div class="checkbox-grid">
+          <label *ngFor="let category of categories" class="checkbox-card">
+            <input
+              type="checkbox"
+              [value]="category.key"
+              (change)="toggleCategory(category.key, $event.target.checked)"
+              [checked]="selectedCategories.includes(category.key)"
+            />
+            <span>{{ category.label }}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group full-width">
+      <label class="field-label" for="email">✉️ Email de contacto</label>
+      <input
+        id="email"
+        type="email"
+        name="email"
+        required
+        placeholder="tu@email.com"
+        [(ngModel)]="email"
+      />
+      <small class="help-text">Recibirás los detalles de conexión en este email</small>
+    </div>
+
+    <div class="summary-box">
+      <div class="summary-item">
+        <span>Precio base:</span>
+        <strong>{{ getBasePrice() | number:'1.2-2' }} €</strong>
+      </div>
+      <div class="summary-item">
+        <span>Categorías adicionales:</span>
+        <strong>{{ (selectedCategories.length * 3) | number:'1.2-2' }} €</strong>
+      </div>
+      <div class="summary-item total">
+        <span>Total:</span>
+        <strong>{{ total | number:'1.2-2' }} €</strong>
+      </div>
+    </div>
+
+    <div class="stats-box">
+      <div class="stat">
+        <span class="stat-label">Categorías</span>
+        <span class="stat-value">{{ selectedCategories.length || 0 }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Duración</span>
+        <span class="stat-value">{{ duration }} mes{{ duration > 1 ? 'es' : '' }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Visitas</span>
+        <span class="stat-value">{{ visits }}</span>
+      </div>
+    </div>
+
+    <button type="button" class="btn-primary" [disabled]="isSubmitting || !email || selectedCategories.length === 0" (click)="submitOrder()">
+      <span *ngIf="!isSubmitting">💳 Pagar con PayPal - {{ total | number:'1.2-2' }} €</span>
+      <span *ngIf="isSubmitting">⏳ Procesando...</span>
+    </button>
+
+    <div class="message-box" *ngIf="message" [ngClass]="{ 'error': isError, 'success': !isError }">
+      <p>{{ message }}</p>
+    </div>
+  </form>
+
+  <div class="info-box">
+    <h3>¿Cómo funciona?</h3>
+    <ul>
+      <li>✅ Elige tu duración (1, 3 o 6 meses)</li>
+      <li>✅ Selecciona las categorías que deseas</li>
+      <li>✅ Serás redirigido a PayPal para pagar</li>
+      <li>✅ Recibirás los detalles por email inmediatamente</li>
+      <li>✅ Disfruta de tu IPTV sin límites</li>
+    </ul>
+  </div>
+</section>

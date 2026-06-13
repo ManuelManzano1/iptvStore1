@@ -1,0 +1,237 @@
+.card {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.8) 100%);
+  border: 1px solid #334155;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.section-title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: #cbd5e1;
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.15);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  margin: 0.5rem 0 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.orders-section {
+  margin-top: 2.5rem;
+}
+
+.section-subtitle {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.orders-table-wrapper {
+  overflow-x: auto;
+  border-radius: 1rem;
+  border: 1px solid #334155;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.orders-table thead {
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%);
+  border-bottom: 2px solid #334155;
+}
+
+.orders-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 700;
+  color: #38bdf8;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.order-row {
+  border-bottom: 1px solid #334155;
+  transition: background-color 0.2s ease;
+}
+
+.order-row:hover {
+  background: rgba(56, 189, 248, 0.05);
+}
+
+.order-row:last-child {
+  border-bottom: none;
+}
+
+.order-row td {
+  padding: 1rem;
+  color: #cbd5e1;
+}
+
+.email-cell {
+  font-weight: 500;
+  color: #38bdf8;
+}
+
+.price-cell {
+  font-weight: 700;
+  color: #4ade80;
+  font-size: 1.05rem;
+}
+
+.date-cell {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.categories-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: rgba(236, 72, 153, 0.15);
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  border-radius: 0.5rem;
+  color: #ec4899;
+  font-weight: 600;
+  cursor: help;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin: 0 0 1rem;
+}
+
+.empty-text {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: center;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.5rem;
+  border-radius: 1rem;
+  background: rgba(56, 189, 248, 0.1);
+  border: 2px solid #38bdf8;
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(56, 189, 248, 0.2);
+  transform: translateX(-2px);
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1.5rem;
+    border-radius: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .orders-table {
+    font-size: 0.85rem;
+  }
+
+  .orders-table th,
+  .order-row td {
+    padding: 0.75rem;
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+  }
+}

@@ -1,0 +1,155 @@
+.card {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.8) 100%);
+  border: 1px solid #334155;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.success-card {
+  border-top: 4px solid #4ade80;
+}
+
+.success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.success-icon {
+  font-size: 3.5rem;
+  animation: bounce 1s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.section-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #4ade80, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: #cbd5e1;
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.order-details {
+  width: 100%;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.detail-label {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.detail-value {
+  color: #4ade80;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  word-break: break-all;
+}
+
+.info-message {
+  width: 100%;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.info-message p {
+  margin: 0.5rem 0;
+  color: #cbd5e1;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.info-message p:first-child {
+  margin-top: 0;
+}
+
+.info-message p:last-child {
+  margin-bottom: 0;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(56, 189, 248, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1.5rem;
+    border-radius: 1rem;
+  }
+
+  .success-icon {
+    font-size: 2.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .order-details,
+  .info-message {
+    padding: 1rem;
+  }
+
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import nodemailer from 'nodemailer';
 import { randomUUID } from 'crypto';
+import { Pool } from 'pg';
 
 dotenv.config({ path: '../.env' });
 
@@ -13,6 +14,18 @@ app.use(cors());
 const PORT = process.env.PORT || 3000;
 const PAYPAL_BUSINESS = process.env.PAYPAL_BUSINESS || 'TU_CORREO_PAYPAL_PERSONAL@gmail.com';
 const EMAIL_TO = process.env.EMAIL_TO || process.env.EMAIL_USER || 'admin@example.com';
+
+// Configuración de la conexión a PostgreSQL (Esquema por defecto: public)
+const pool = new Pool({
+  host: 'ep-bold-sound-abn7lrav.eu-west-2.aws.neon.tech',
+  database: 'iptv',
+  user: 'neondb_owner',
+  password: 'npg_zkCft3mY6qEA',
+  port: 5432,
+  ssl: {
+    rejectUnauthorized: false // Requerido para conectar con Neon de forma segura
+  }
+});
 
 interface EmailConfig {
   host: string;
@@ -44,42 +57,10 @@ interface Order {
   status: 'pending' | 'completed' | 'failed';
 }
 
-// Nota: En producción, considera usar una base de datos (MongoDB, PostgreSQL, etc.) 
-// ya que si el servidor se reinicia, este array en memoria se borrará.
-const orders: Order[] = [];
 let visitCount = 0;
 
 function computeTotal(duration: number, categories: string[]): number {
   return duration === 1 ? 0.01 : duration === 3 ? 25 : 40;
-}
-
-async function sendEmail(order: Order): Promise<void> {
-  if (!emailTransportConfig.auth.user || !emailTransportConfig.auth.pass) {
-    console.warn('Email no enviado porque faltan credenciales SMTP.');
-    return;
-  }
-
-  const transporter = nodemailer.createTransport(emailTransportConfig);
-  const htmlCategories = order.categories.map((cat) => `<li>${cat}</li>`).join('');
-
-  const message = {
-    from: process.env.EMAIL_FROM || emailTransportConfig.auth.user,
-    to: EMAIL_TO,
-    subject: `✅ ¡Pago Completado! Nueva orden IPTV - ${order.duration} mes${order.duration === 1 ? '' : 'es'}`,
-    text: `Nueva orden IPTV PAGADA\nEmail: ${order.email}\nDuración: ${order.duration} meses\nCategorías: ${order.categories.join(', ')}\nTotal: ${order.total.toFixed(2)} €\nID: ${order.id}`,
-    html: `
-      <h2>🎉 Nueva orden IPTV Pagada con Éxito</h2>
-      <p><strong>Email:</strong> ${order.email}</p>
-      <p><strong>Duración:</strong> ${order.duration} mes${order.duration === 1 ? '' : 'es'}</p>
-      <p><strong>Total:</strong> ${order.total.toFixed(2)} €</p>
-      <p><strong>ID:</strong> ${order.id}</p>
-      <p><strong>Categorías:</strong></p>
-      <ul>${htmlCategories}</ul>
-      <p><strong>Fecha:</strong> ${order.createdAt}</p>
-    `
-  };
-
-  return transporter.sendMail(message) as unknown as Promise<void>;
 }
 
 async function sendCustomerEmail(order: Order): Promise<void> {
@@ -142,8 +123,6 @@ async function sendCustomerEmail(order: Order): Promise<void> {
             <table class="data-table">
               <tr><td><strong>ID de orden</strong></td><td>${order.id}</td></tr>
               <tr><td><strong>Suscripción</strong></td><td>${order.duration} mes${order.duration === 1 ? '' : 'es'}</td></tr>
-              <tr><td><strong>Categorías</strong></td><td><ul style="margin:0; padding-left:20px;">${htmlCategories}</ul></td></tr>
-              <tr><td><strong>Total</strong></td><td style="color: #667eea; font-weight: bold;">${order.total.toFixed(2)} €</td></tr>
             </table>
           </div>
           <div class="footer">
@@ -175,27 +154,38 @@ app.post('/back/orders', async (req: Request, res: Response) => {
   const id = randomUUID();
   const createdAt = new Date().toISOString();
 
-  // Guardamos la orden con status 'pending' y NO enviamos correos aún
-  const order: Order = {
-    id,
-    email,
-    duration,
-    categories: categoriesArray,
-    total,
-    createdAt,
-    status: 'pending'
-  };
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  orders.unshift(order);
+    const insertOrderQuery = `
+      INSERT INTO orders (id, email, duration, total, created_at, status)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `;
+    await client.query(insertOrderQuery, [id, email, duration, total, createdAt, 'pending']);
 
-  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-  const host = req.headers['x-forwarded-host'] || req.get('host');
-  const baseUrl = `localhost:4200`;
-  
-  // IMPORTANTE: Modificamos la URL de retorno para incluir el ID de la orden
+    if (categoriesArray.length > 0) {
+      const insertCategoryQuery = `
+        INSERT INTO order_categories (order_id, category_name)
+        VALUES ($1, $2)
+      `;
+      for (const category of categoriesArray) {
+        await client.query(insertCategoryQuery, [id, category]);
+      }
+    }
+
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error insertando la orden en base de datos:', error);
+    return res.status(500).json({ error: 'Error interno del servidor al procesar la orden.' });
+  } finally {
+    client.release();
+  }
+
+  const baseUrl = `http://localhost:4200`;
   const returnUrl = process.env.SUCCESS_URL || `${baseUrl}/success`;
   const cancelUrl = process.env.CANCEL_URL || `${baseUrl}/`;
-
   const itemName = `IPTV ${duration} mes${duration === 1 ? '' : 'es'}`;
   
   const redirectUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_BUSINESS)}&item_name=${encodeURIComponent(itemName)}&amount=0.01&currency_code=EUR&return=${encodeURIComponent(returnUrl)}&cancel_return=${encodeURIComponent(cancelUrl)}&no_shipping=1&rm=1`;
@@ -206,36 +196,62 @@ app.post('/back/orders', async (req: Request, res: Response) => {
   });
 });
 
-// 2. NUEVO ENDPOINT: EL FRONTEND LO LLAMA CUANDO EL USUARIO LLEGA A LA PÁGINA DE ÉXITO
+// 2. EL FRONTEND CONFIRMA LA ORDEN AL VOLVER DE PAYPAY
 app.post('/back/orders/confirm', async (req: Request, res: Response) => {
-  const { orderId } = req.body;
-
-  // Buscamos la orden correspondiente en nuestro almacén temporal
-  const order = orders[0]
-
-  if (!order) {
-    return res.status(404).json({ error: 'Orden no encontrada.' });
-  }
-
-  // Si ya fue completada, evitamos duplicar los correos
-  if (order.status === 'completed') {
-    return res.json({ success: true, message: 'La orden ya había sido procesada previamente.' });
-  }
-
-  // Cambiamos el estado y ahora SÍ disparamos los correos electrónicos
-  order.status = 'completed';
-
   try {
-    await sendEmail(order);         // Email para ti (Administrador)
-    await sendCustomerEmail(order); // Email para el cliente con sus accesos
+    // Buscamos la última orden pendiente en la tabla orders
+    const selectPendingOrderQuery = `
+      SELECT id, email, duration, total, created_at, status 
+      FROM orders 
+      WHERE status = 'pending' 
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `;
+    const orderResult = await pool.query(selectPendingOrderQuery);
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ error: 'No se encontró ninguna orden pendiente.' });
+    }
+
+    const dbOrder = orderResult.rows[0];
+
+    // Consultamos sus categorías asociadas de forma relacional
+    const selectCategoriesQuery = `
+      SELECT category_name 
+      FROM order_categories 
+      WHERE order_id = $1
+    `;
+    const categoriesResult = await pool.query(selectCategoriesQuery, [dbOrder.id]);
+    const categoriesMapped = categoriesResult.rows.map(row => row.category_name);
+
+    // Corregido: Ahora solo pasamos 1 parámetro ($1 para el id) y cambiamos el estado a 'completed'
+    const updateOrderQuery = `
+      UPDATE orders 
+      SET status = 'completed' 
+      WHERE id = $1
+    `;
+    await pool.query(updateOrderQuery, [dbOrder.id]);
+
+    const completedOrder: Order = {
+      id: dbOrder.id,
+      email: dbOrder.email,
+      duration: dbOrder.duration,
+      categories: categoriesMapped,
+      total: Number(dbOrder.total),
+      createdAt: dbOrder.created_at,
+      status: 'completed'
+    };
+
+    // Envío seguro del email únicamente al comprador una vez persistido el estado en BBDD
+    await sendCustomerEmail(completedOrder);
     
     return res.json({ 
       success: true, 
-      message: 'Pago confirmado. Credenciales enviadas por correo.' 
+      message: 'Pago confirmado. Credenciales de la orden enviadas por correo electrónico.' 
     });
   } catch (err) {
-    console.error('Error al enviar emails tras el pago:', err);
-    return res.status(500).json({ error: 'El pago se procesó pero hubo un fallo al enviar los correos.' });
+    console.error('Error durante la transacción de confirmación de la orden:', err);
+    return res.status(500).json({ error: 'Error en el servidor al procesar los correos post-pago.' });
   }
 });
 
@@ -245,11 +261,23 @@ app.get('/back/visit', (req: Request, res: Response) => {
 });
 
 app.get('/', (req: Request, res: Response) => {
-  res.json({ status: 'ok', version: '1.1' });
+  res.json({ status: 'ok', version: '1.2' });
 });
 
-app.get('/back/admin', (req: Request, res: Response) => {
-  res.json({ visits: visitCount, orders });
+app.get('/back/admin', async (req: Request, res: Response) => {
+  try {
+    const adminOrdersQuery = `
+      SELECT o.*, ARRAY_AGG(oc.category_name) as categories
+      FROM orders o
+      LEFT JOIN order_categories oc ON o.id = oc.order_id
+      GROUP BY o.id
+      ORDER BY o.created_at DESC
+    `;
+    const result = await pool.query(adminOrdersQuery);
+    res.json({ visits: visitCount, orders: result.rows });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al recuperar registros de administración.' });
+  }
 });
 
 app.get('/back/health', (req: Request, res: Response) => {
@@ -257,7 +285,7 @@ app.get('/back/health', (req: Request, res: Response) => {
 });
 
 const server = app.listen(PORT, () => {
-  console.log(`Backend IPTV seguro escuchando en http://localhost:${PORT}`);
+  console.log(`Backend IPTV persistente en Neon escuchando en http://localhost:${PORT}`);
 });
 
 export default server;

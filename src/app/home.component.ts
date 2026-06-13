@@ -36,7 +36,7 @@ export class HomeComponent {
   }
 
   durationOptions = [
-    { value: 1, label: '1 mes', originalPrice: '12 €', discountedPrice: '10 €' },
+    { value: 1, label: '1 mes', originalPrice: '12 €', discountedPrice: '1 €' },
     { value: 3, label: '3 meses', originalPrice: '30 €', discountedPrice: '25 €' },
     { value: 6, label: '6 meses', originalPrice: '45 €', discountedPrice: '40 €' }
   ];
